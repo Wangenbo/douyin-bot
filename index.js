@@ -1,8 +1,10 @@
+const image2base64 = require('./untils/img2base64')
+const faceRecognition = require('./face/tencent-cloud')
 const { exec } = require('child_process')
+const path = require('path')
 const AppActivity = 'com.ss.android.ugc.aweme/com.ss.android.ugc.aweme.splash.SplashActivity'
-const test = 'ls -af'
 const PACKAGE_NAME = 'com.ss.android.ugc.aweme' //APP的包名
-let log = !true
+
 
 /*
  * @Author: Wilbur
@@ -61,6 +63,26 @@ const touchScreen = (point) => {
     return fnExecShell(shell)
 }
 
+/*
+ * @Author: Wilbur
+ * @Date: 2020-07-11 13:58:56
+ * @Desc: 获取屏幕快照
+ */
+const takeScreenshot = (filename) => {
+    const shell = `adb shell screencap ${filename}` //获取屏幕快照
+
+    return new Promise((resolve) => {
+        fnExecShell(shell).then(()=>{
+            console.log('屏幕快照获取成功')
+            fnExecShell(`adb pull ${filename} ./images/`).then(() => {
+                resolve();
+            }) //将屏幕快照复制到当前目录
+        })
+    })
+
+}
+
+
 const checkPackageIsInstall = () => {
     const shell = `adb shell pm list packages`
 
@@ -84,30 +106,36 @@ function awaitMoment (time = 2000) {
  * @Desc: 主函数，入口
  */
 (function mian () {
+    let radomFileName =  new Date().getTime() + '_' + ((Math.random(1) * 100).toFixed(2))
 
+    takeScreenshot('/sdcard/' + radomFileName + '.png').then(()=> {
+        console.log('屏幕快照已复制至images')
 
-    // await
+        let tempPath = './images/' + radomFileName + '.png'
+        let tempImage = image2base64(tempPath); //将文件转换为base64格式
 
-    // await touchScreen({ x: 300, y: 300 })
-    // await swipeScreen({ x: 300, y: 1000 }, { x: 300, y: 640 })
-
-
-    checkPackageIsInstall().then((res)=> {
-
-        if(res.indexOf(PACKAGE_NAME) > -1) { //检查手机中是否安装APP
-            // 打开APP
-            openApp().then(()=>{
-                console.log('APP 启动成功')
-            })
-
-            console.log('等待APP初始化....')
-
-
-            awaitMoment(5000).then(()=> {
-                console.log('APP内容初始化完毕')
-            })
-        }else{
-            console.log('您还未安装抖音APP')
-        }
+        faceRecognition(tempImage).then((data)=> {
+            console.log(data);
+        })
     })
+    // checkPackageIsInstall().then((res)=> {
+
+    //     if(res.indexOf(PACKAGE_NAME) > -1) { //检查手机中是否安装APP
+    //         // 打开APP
+    //         openApp().then(()=>{
+    //             console.log('APP 启动成功')
+    //         })
+
+    //         console.log('等待APP初始化....')
+
+
+    //         awaitMoment(5000).then(()=> {
+    //             console.log('APP内容初始化完毕')
+    //         })
+
+
+    //     }else{
+    //         console.log('您还未安装抖音APP')
+    //     }
+    // })
 })()

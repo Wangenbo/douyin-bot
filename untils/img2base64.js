@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const mimeType = require('mime-types');
 
-function parse(file) {
+function image2base64(file) {
     let filePath = path.resolve(file); // 原始文件地址
     let fileMimeType = mimeType.lookup(filePath); // 获取文件的 memeType
 
@@ -16,9 +16,8 @@ function parse(file) {
     data = new Buffer(data).toString('base64');
     // 转换为 data:image/jpeg;base64,***** 格式的字符串
     let base64 = 'data:' + fileMimeType + ';base64,' + data;
-    // fs.writeFileSync(file+'.txt', base64)
 
     return base64
 }
 
-module.exports = parse
+module.exports = image2base64
